@@ -1,2 +1,4 @@
-bootstrap/*
 .vagrant
+puppet/pe/*.tar.gz
+puppet/pe/puppet-enterprise-*/
+puppet/pe/puppet-enterprise-*/*
