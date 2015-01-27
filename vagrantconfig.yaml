@@ -1,0 +1,10 @@
+master:
+  cpus: 4
+  memory: 4096
+  hostname: puppetmaster.vagrant.vm
+  ip_address: 192.168.33.19
+agent:
+  cpus: 1
+  memory: 512
+  hostname: agent.vagrant.vm
+  ip_address: 192.168.33.20
