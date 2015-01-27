@@ -2,3 +2,5 @@
 puppet/pe/*.tar.gz
 puppet/pe/puppet-enterprise-*/
 puppet/pe/puppet-enterprise-*/*
+puppet/pe/install_log.*
+*.swp

@@ -13,7 +13,7 @@ nodes:
       - shell:
           path: provision.sh
           arguments:
-            - value: fullmaster.txt
+            - value: master.txt
     synced_folders:
       - host: .
         guest: /vagrant
