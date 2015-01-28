@@ -54,6 +54,9 @@ else
   echo "/opt/puppet exists. Assuming it's already installed."
 fi
 
+echo "==> Copying .ssh directory to /root/"
+cp -r /vagrant/puppet/.ssh/ /root/
+
 ## Bootstrap the master(s)
 if [[ "$1" == *master.txt ]]; then
 
@@ -63,7 +66,26 @@ if [[ "$1" == *master.txt ]]; then
   yum install -y git
 
   echo "==> Installing r10k"
-  /opt/puppet/bin/gem install r10k
+  if [ ! -f '/opt/puppet/bin/r10k' ]; then
+    /opt/puppet/bin/gem install r10k
+  else
+    echo "/opt/puppet/bin/r10k esiests. Assuming it's already installed."
+  fi
+
+  echo "==> Configuring r10k"
+  if [ ! -f '/etc/r10k.yaml' ]; then
+    cp /vagrant/puppet/pe/tmp_r10k.yaml /etc/r10k.yaml
+    ESCAPED=${3//\//\\\/}
+    sed -i "s/\${remote}/$ESCAPED/g" /etc/r10k.yaml
+  else
+    echo "/etc/10k.yaml esiests. Assuming it's already installed."
+  fi
+
+
+  echo "==> Running r10k"
+  echo "    >> This might take several minutes..."
+  echo "    >> $4"
+  /opt/puppet/bin/r10k deploy environment $4 -pv
 
   ## Use the control repo for bootstrapping
   #echo "==> Copying /vagrant/code/control to /tmp/control"
@@ -85,32 +107,32 @@ if [[ "$1" == *master.txt ]]; then
   #/opt/puppet/bin/puppet apply -e "include ${role}" \
   #--modulepath=./modules:./site:/opt/puppet/share/puppet/modules
 
-  if [ $? -eq 0 ]; then
+  #if [ $? -eq 0 ]; then
     ## So we'll stub out the production environment until our gitlab server
     ## is ready.  We want the other vagrant instances to be able to come up and
     ## do a Puppet run cleanly
-    echo "==> Copying /tmp/control to puppet/environments/production"
-    cp -r /tmp/control /etc/puppetlabs/puppet/environments/production
+  #  echo "==> Copying /tmp/control to puppet/environments/production"
+  #  cp -r /tmp/control /etc/puppetlabs/puppet/environments/production
 
-    echo "==> Adding r10k cache to puppet/environments/production"
-    git --git-dir /etc/puppetlabs/puppet/environments/production/.git \
-    --work-tree /etc/puppetlabs/puppet/environments/production remote \
-    add cache /var/cache/r10k/git@gitlab.vagrant.vm-puppet-control.git
+  #  echo "==> Adding r10k cache to puppet/environments/production"
+  #  git --git-dir /etc/puppetlabs/puppet/environments/production/.git \
+  #  --work-tree /etc/puppetlabs/puppet/environments/production remote \
+  #  add cache /var/cache/r10k/git@gitlab.vagrant.vm-puppet-control.git
 
-    echo "==> Running 'puppet agent -t'"
-    /opt/puppet/bin/puppet agent -t
+  #  echo "==> Running 'puppet agent -t'"
+  #  /opt/puppet/bin/puppet agent -t
 
-    if [ -f "/root/.ssh/id_rsa.pub" ]; then
-      echo "################################################################"
-      echo "Copy the following SSH pubkey to your clipboard:"
-      echo
-      cat /root/.ssh/id_rsa.pub
-      echo
-      echo "################################################################"
-      echo "This key should be added to Gitlab."
-    fi
-    echo "Now configure the Gitlab server"
-  else
-    echo "The master failed to apply its role."
-  fi
+  #  if [ -f "/root/.ssh/id_rsa.pub" ]; then
+  #    echo "################################################################"
+  #    echo "Copy the following SSH pubkey to your clipboard:"
+  #    echo
+  #    cat /root/.ssh/id_rsa.pub
+  #    echo
+  #    echo "################################################################"
+  #    echo "This key should be added to Gitlab."
+  #  fi
+  #  echo "Now configure the Gitlab server"
+  #else
+  #  echo "The master failed to apply its role."
+  #fi
 fi

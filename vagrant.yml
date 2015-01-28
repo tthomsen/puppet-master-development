@@ -14,6 +14,9 @@ nodes:
           path: provision.sh
           arguments:
             - value: master.txt
+            - value: 'role::puppet::master'
+            - value: 'https://github.com/tthomsen/puppet-configuration.git'
+            - value: development
     synced_folders:
       - host: .
         guest: /vagrant
@@ -33,3 +36,6 @@ nodes:
     synced_folders:
       - host: .
         guest: /vagrant
+r10k:
+  remote: 'https://github.com/tthomsen/puppet-configuration.git'
+  environment: development
