@@ -59,6 +59,13 @@ cp -r /vagrant/puppet/.ssh/ /root/
 
 ## Bootstrap the master(s)
 if [[ "$1" == *master.txt ]]; then
+  echo "==> create /etc/puppetlabs/puppet/environments"
+  if [ ! -d '/etc/puppetlabs/puppet/environments' ]; then
+    # Assume puppet isn't installed
+    mkdir -p /etc/puppetlabs/puppet/environments
+  else
+    echo "/etc/puppetlabs/puppet/environments exists. Assuming it's already created."
+  fi
 
   #[ ! -z "$2" ] && role="$2" || role="role::puppet::master"
 
@@ -87,6 +94,7 @@ if [[ "$1" == *master.txt ]]; then
   echo "    >> $4"
   /opt/puppet/bin/r10k deploy environment $4 -pv
 
+  mv /etc/puppetlabs/puppet/environments/$4/*  /etc/puppetlabs/puppet/modules/
   ## Use the control repo for bootstrapping
   #echo "==> Copying /vagrant/code/control to /tmp/control"
   #cp -r /vagrant/code/control /tmp/control
