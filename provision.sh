@@ -54,13 +54,10 @@ else
   echo "/opt/puppet exists. Assuming it's already installed."
 fi
 
-echo "==> Copying .ssh directory to /root/"
-cp -r /vagrant/puppet/.ssh/ /root/
-
 ## Bootstrap the master(s)
 if [[ "$1" == *master.txt ]]; then
-
-  #[ ! -z "$2" ] && role="$2" || role="role::puppet::master"
+  echo "==> Copying .ssh directory to /root/"
+  cp -r /vagrant/puppet/.ssh/ /root/
 
   ## Install some prerequisites
   yum install -y git
@@ -72,67 +69,15 @@ if [[ "$1" == *master.txt ]]; then
     echo "/opt/puppet/bin/r10k esiests. Assuming it's already installed."
   fi
 
-  echo "==> Configuring r10k"
-  if [ ! -f '/etc/r10k.yaml' ]; then
-    cp /vagrant/puppet/pe/tmp_r10k.yaml /etc/r10k.yaml
-    ESCAPED=${3//\//\\\/}
-    sed -i "s/\${remote}/$ESCAPED/g" /etc/r10k.yaml
+  echo "==> Creating /vagrant/module_workspace"
+  if [ ! -d '/vagrant/module_workspace' ]; then
+    mkdir /vagrant/module_workspace
   else
-    echo "/etc/10k.yaml esiests. Assuming it's already installed."
+    echo "/vagrant/module_workspace exists. Assuming it's already installed."
   fi
 
-
-  echo "==> Running r10k"
-  echo "    >> This might take several minutes..."
-  echo "    >> $4"
-  /opt/puppet/bin/r10k deploy environment $4 -pv
-
-  ## Use the control repo for bootstrapping
-  #echo "==> Copying /vagrant/code/control to /tmp/control"
-  #cp -r /vagrant/code/control /tmp/control
-  #cd /tmp/control
-
-  #echo "==> Initializing /tmp/control as a Git repository"
-  #git init && git add . && git commit -m "Initial commit"
-
-  #echo "==> Running r10k against /tmp/control/Puppetfile"
-  #echo "    >> This might take several minutes..."
-  #/opt/puppet/bin/r10k puppetfile install -v
-
-  ## Run a Puppet apply against the role in the copy of the control repo so we
-  ## can bootstrap
-  #echo "======================================================================"
-  #echo "Applying role: ${role}"
-  #echo
-  #/opt/puppet/bin/puppet apply -e "include ${role}" \
-  #--modulepath=./modules:./site:/opt/puppet/share/puppet/modules
-
-  #if [ $? -eq 0 ]; then
-    ## So we'll stub out the production environment until our gitlab server
-    ## is ready.  We want the other vagrant instances to be able to come up and
-    ## do a Puppet run cleanly
-  #  echo "==> Copying /tmp/control to puppet/environments/production"
-  #  cp -r /tmp/control /etc/puppetlabs/puppet/environments/production
-
-  #  echo "==> Adding r10k cache to puppet/environments/production"
-  #  git --git-dir /etc/puppetlabs/puppet/environments/production/.git \
-  #  --work-tree /etc/puppetlabs/puppet/environments/production remote \
-  #  add cache /var/cache/r10k/git@gitlab.vagrant.vm-puppet-control.git
-
-  #  echo "==> Running 'puppet agent -t'"
-  #  /opt/puppet/bin/puppet agent -t
-
-  #  if [ -f "/root/.ssh/id_rsa.pub" ]; then
-  #    echo "################################################################"
-  #    echo "Copy the following SSH pubkey to your clipboard:"
-  #    echo
-  #    cat /root/.ssh/id_rsa.pub
-  #    echo
-  #    echo "################################################################"
-  #    echo "This key should be added to Gitlab."
-  #  fi
-  #  echo "Now configure the Gitlab server"
-  #else
-  #  echo "The master failed to apply its role."
-  #fi
+  echo "==> Linking /etc/puppetlabs/puppet/module_workspace"
+  if [ ! -d '/etc/puppetlabs/puppet/module_workspace' ]; then
+    ln -s /vagrant/module_workspace /etc/puppetlabs/puppet/module_workspace
+  fi
 fi
